@@ -1,0 +1,26 @@
+{
+  "name": "wondertoys",
+  "version": "0.1.0",
+  "description": "A highly customizable Twitch chat bot.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "WonderToys",
+  "license": "MIT",
+  "keywords": [
+    "twitch",
+    "bot",
+    "irc"
+  ],
+  "dependencies": {
+    "camo": "^0.12.3",
+    "glob": "^7.1.1",
+    "lodash": "^4.16.6",
+    "moment": "^2.16.0",
+    "nedb": "^1.8.0",
+    "node-uuid": "^1.4.7",
+    "request": "^2.78.0",
+    "tmi.js": "^1.1.2"
+  }
+}

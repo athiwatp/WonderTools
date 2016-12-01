@@ -1,0 +1,30 @@
+{
+	"client": {
+	    "options": { 
+	    	"debug": true 
+	    },
+	    "connection": { 
+	    	"reconnect": true 
+	    },
+		"identity": {
+			"username": "USERNAME",
+			"password": "OAUTH_PASSWORD"
+		},
+		"channel": "#CHANNEL"
+	},
+	"systems": {
+		"$PointsSystem": {
+			"name": "Points",
+			"updateInterval": 60000,
+			"awardAmount": 2,
+			"activeBonus": 2		
+		}
+	},
+	"commands": {
+		"$global": {
+			"cooldown": 0,
+			"userCooldown": 0,
+			"pointCost": 0
+		}
+	}
+}
