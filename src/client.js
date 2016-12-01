@@ -3,12 +3,12 @@
 const tmi = require('tmi.js');
 const moment = require('moment');
 
-const CommandManager = require('./core/command/CommandManager');
-const SystemManager = require('./core/system/SystemManager');
-const ViewerManager = require('./core/viewer/ViewerManager');
-const PointsManager = require('./core/points/PointsManager');
-const VariableManager = require('./core/variable/VariableManager');
-const Request = require('./core/Request');
+const CommandManager = require('./command/CommandManager');
+const SystemManager = require('./system/SystemManager');
+const ViewerManager = require('./viewer/ViewerManager');
+const PointsManager = require('./points/PointsManager');
+const VariableManager = require('./variable/VariableManager');
+const Request = require('./Request');
 
 const config = require('../config.json');
 const clientConfig =  config.client;

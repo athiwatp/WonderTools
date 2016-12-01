@@ -3,7 +3,7 @@
 const moment = require('moment');
 const _ = require('lodash');
 
-const config = require('../../../config.json');
+const config = require('../../config.json');
 
 // -----
 //  Command

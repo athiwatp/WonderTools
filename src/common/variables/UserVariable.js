@@ -1,6 +1,6 @@
 "use strict";
 
-const Variable = require('../../core/variable/Variable');
+const Variable = require('../../variable/Variable');
 
 // -----
 //  User
