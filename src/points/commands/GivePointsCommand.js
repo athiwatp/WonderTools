@@ -1,6 +1,6 @@
 "use strict";
 
-const Command = require('../../command/Command');
+const Command = require('../../core/command/Command');
 
 // -----
 //  GivePoints

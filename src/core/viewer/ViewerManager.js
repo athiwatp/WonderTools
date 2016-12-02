@@ -1,7 +1,7 @@
 "use strict";
 
 const Viewer = require('./Viewer');
-const api = require('../api');
+const api = require('../../api');
 
 // -----
 //  ViewerManager

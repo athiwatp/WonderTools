@@ -2,7 +2,7 @@
 
 const moment = require('moment');
 
-const System = require('../system/System');
+const System = require('../core/system/System');
 
 // -----
 //  PointSystem

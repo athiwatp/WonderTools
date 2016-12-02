@@ -3,11 +3,11 @@
 const tmi = require('tmi.js');
 const moment = require('moment');
 
-const CommandManager = require('./command/CommandManager');
-const SystemManager = require('./system/SystemManager');
-const ViewerManager = require('./viewer/ViewerManager');
+const CommandManager = require('./core/command/CommandManager');
+const SystemManager = require('./core/system/SystemManager');
+const ViewerManager = require('./core/viewer/ViewerManager');
 const PointsManager = require('./points/PointsManager');
-const VariableManager = require('./variable/VariableManager');
+const VariableManager = require('./core/variable/VariableManager');
 const Request = require('./Request');
 
 const config = require('../config.json');
