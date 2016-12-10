@@ -36,10 +36,7 @@ class Points extends Command {
   //  Public
   // -----
   action(request, reply) {
-    const points = request.viewer.points;
-    const sysConfig = this.config.system;
-
-    reply(`$user has ${ points.amount } ${ sysConfig.name }! Rank: NO_RANK.`);
+    reply(`$user has $points $pointsName!`);
   }
 };
 

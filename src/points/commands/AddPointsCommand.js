@@ -1,6 +1,7 @@
 "use strict";
 
 const Command = require('../../core/command/Command');
+const pointsManager = require('../pointsManager');
 
 // -----
 //  AddPoints
@@ -36,7 +37,6 @@ class AddPoints extends Command {
   //  Public
   // -----
   action(request, reply) {
-    const pointsManager = request.plugins.pointsManager;
     const target = request.params.target;
     let amount = parseInt(request.params.amount);
     
@@ -50,7 +50,7 @@ class AddPoints extends Command {
         points.add(amount)
           .then(() => {
             const sysConfig = this.config.system;
-            reply(`I've added ${ amount } ${ sysConfig.name } to ${ target }!`);
+            reply(`I've added ${ amount } $pointsName to ${ target }!`);
           })
           .catch((error) => {
             console.error(error);

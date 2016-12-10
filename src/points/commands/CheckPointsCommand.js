@@ -1,6 +1,7 @@
 "use strict";
 
 const Command = require('../../core/command/Command');
+const pointsManager = require('../pointsManager');
 
 // -----
 //  CheckPoints
@@ -36,13 +37,12 @@ class CheckPoints extends Command {
   //  Public
   // -----
   action(request, reply) {
-    const pointsManager = request.plugins.pointsManager;
     const target = request.params.target;
 
     pointsManager.getOne(target, request.channel)
       .then((points) => {
         const sysConfig = this.config.system;
-        reply(`${ target } currently has ${ points.amount } ${ sysConfig.name }!`);
+        reply(`${ target } currently has ${ points.amount } $pointsName!`);
       })
       .catch((error) => {
         console.error(error);

@@ -1,6 +1,7 @@
 "use strict";
 
 const Command = require('../../core/command/Command');
+const pointsManager = require('../pointsManager');
 
 // -----
 //  RemovePoints
@@ -36,7 +37,6 @@ class RemovePoints extends Command {
   //  Public
   // -----
   action(request, reply) {
-    const pointsManager = request.plugins.pointsManager;
     const target = request.params.target;
     let amount = parseInt(request.params.amount);
     
@@ -54,7 +54,7 @@ class RemovePoints extends Command {
         points.remove(amount)
           .then(() => {
             const sysConfig = this.config.system;
-            reply(`I've removed ${ amount } ${ sysConfig.name } from ${ target }!`);
+            reply(`I've removed ${ amount } $pointsName from ${ target }!`);
           })
           .catch((error) => {
             console.error(error);

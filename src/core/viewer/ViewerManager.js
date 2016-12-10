@@ -106,4 +106,4 @@ class ViewerManager {
 };
 
 // Exports
-module.exports = ViewerManager;
+module.exports = new ViewerManager();

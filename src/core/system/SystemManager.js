@@ -83,4 +83,4 @@ class SystemManager {
 };
 
 // Exports
-module.exports = SystemManager;
+module.exports = new SystemManager();

@@ -1,6 +1,7 @@
 "use strict";
 
 const Command = require('../../core/command/Command');
+const pointsManager = require('../pointsManager');
 
 // -----
 //  GivePoints
@@ -32,7 +33,6 @@ class GivePoints extends Command {
   //  Public
   // -----
   action(request, reply) {
-    const pointsManager = request.plugins.pointsManager;
     const target = request.params.target;
     let amount = parseInt(request.params.amount);
     
@@ -55,7 +55,7 @@ class GivePoints extends Command {
       })
       .then(() => {
         const sysConfig = this.config.system;
-        reply(`${ request.viewer.displayName } has given ${target} ${ amount } ${ systemConfig.name }!`);
+        reply(`$user has given ${ target } ${ amount } $pointsName!`);
       })
       .catch((error) => {
         console.error(error);

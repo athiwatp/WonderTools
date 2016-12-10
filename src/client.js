@@ -3,15 +3,15 @@
 const tmi = require('tmi.js');
 const moment = require('moment');
 
-const CommandManager = require('./core/command/CommandManager');
-const SystemManager = require('./core/system/SystemManager');
-const ViewerManager = require('./core/viewer/ViewerManager');
-const PointsManager = require('./points/PointsManager');
-const VariableManager = require('./core/variable/VariableManager');
+const commandManager = require('./core/command/commandManager');
+const systemManager = require('./core/system/systemManager');
+const variableManager = require('./core/variable/variableManager');
 const Request = require('./Request');
 
 const config = require('../config.json');
 const clientConfig =  config.client;
+
+const messageHandler = require('./messageHandler');
 
 const me = clientConfig.identity.username;
 
@@ -26,49 +26,11 @@ const client = new tmi.client({
   channels: [ clientConfig.channel ]
 });
 
-const commandManager = new CommandManager();
-const systemManager = new SystemManager();
-const viewerManager = new ViewerManager();
-const pointsManager = new PointsManager();
-const variableManager = new VariableManager();
-
-const plugins = {
-  commandManager, systemManager,
-  viewerManager, pointsManager
-};
-
 let interval = null;
 
 // -----
 //  Private
 // -----
-
-// _parseCommand()
-const _parseCommand = function _parseCommand(text, messageType) {
-  const split = text.split(' ');
-  const paramString = split.splice(1).join(' ');
-  const commandText = split[0];
-  const command = commandManager.getOne(commandText, messageType);
-
-  if ( command != null ) {
-    let params = {};
-    if ( Array.isArray(command.params) && command.params.length > 0 ) {
-      const matches = paramString.match(CommandManager.PARAMS_REGEX);
-
-      if ( matches != null && matches.length >= command.params.length ) {
-        params = command.params.reduce((previous, current, index) => {
-          previous[current.name] = matches[index].replace('"', '');
-          return previous;
-        }, {});
-      }
-      else {
-        params = false;
-      }
-    }
-
-    return { commandText, command, params };
-  }
-}; //- _parseCommand()
 
 // _connect()
 const _connect = function _connect() {
@@ -79,50 +41,15 @@ const _connect = function _connect() {
   return client.connect();
 }; //- _connect()
 
-// _callAction()
-const _callAction = function _callAction(command, request, reply) {
-  let result = command.action.call(command, request, reply);
-  if ( !(result instanceof Promise) ) {
-    if ( result instanceof Error ) {
-      result = Promise.reject(result);
-    }
-    else {
-      result = Promise.resolve(result || true);
-    }
-  }
+// _getReply()
+const _getReply = function _getReply(channel, messageType) {
+  let reply = client[messageType];
+  if ( messageType === 'chat' ) reply = client.say;
 
-  result.then((res) => {
-    if ( res === false ) return;
-
-    if ( command.pointCost != null && command.pointCost > 0 ) {
-      const points = request.viewer.points;
-      points.remove(command.pointCost);
-    }
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-}; //- _callAction()
-
-// _getViewerInfo()
-const _getViewerInfo = function _getViewerInfo(username, channel, data) {
-  return new Promise((resolve, reject) => {
-    viewerManager.getOne(username, channel, data)
-      .then((viewer) => {
-        pointsManager.getOne(username, channel)
-          .then((points) => {
-            viewer.points = points;
-            resolve(viewer);
-          })
-          .catch((error) => {
-            reject(error);
-          })
-      })
-      .catch((error) => {
-        reject(error);
-      })
-  });
-}; //- _getViewerInfo()
+  return function(message) {
+    reply.call(client, channel, message);
+  };
+}; //- _getReply()
 
 // _setupListeners()
 const _setupListeners = function _setupListeners() {
@@ -146,93 +73,26 @@ const _setupListeners = function _setupListeners() {
 
       if ( username.toLowerCase() === clientConfig.identity.username.toLowerCase() ) return;
 
-      const newPlugins = Object.assign({}, plugins);
-      const request = new Request(channel, message, messageType, username, newPlugins);
-      
-      const parsed = _parseCommand(message, messageType);
-      if ( parsed != null ) {
-        const data = {
-          userId: userId,
-          isModerator: userState.mod,
-          isSubscriber: userState.subscriber,
-          isBroadcaster: userState['user-type'] === 'broadcaster',
-          displayName: userState['display-name'],
-          channel, username
-        };
-
-        _getViewerInfo(username, channel, data)
-          .then((viewer) => {
-            const reply = _getReply(channel, messageType, parsed.command, username, request);
-
-            // Ensure the command isn't on cooldown
-            const cooldown = parsed.command.onCooldown(username);
-            if ( cooldown !== false && moment.isDuration(cooldown) ) {
-              const secs = Math.round(cooldown.asSeconds());
-              reply(`Hey ${ viewer.displayName }, you have another ${ secs }s to wait before you can execute that again!`);
-              return;
-            }
-
-            // Ensure we can afford the command
-            if ( parsed.command.pointCost != null && parsed.command.pointCost > 0 ) {
-              if ( viewer.points.amount < parsed.command.pointCost ) {
-                reply(`Hey ${ viewer.displayName }, you can't afford that action! FeelsBadMan`);
-                return;
-              }
-            }
-
-            // Ensure we have a high enough access level
-            if ( parsed.command.canExecute(viewer, userState) ) {
-              if ( parsed.params === false ){
-                reply(`USAGE: ${ parsed.command.usage }`);
-                return;
-              }
-
-              request._viewer = viewer;
-              request._command = parsed.commandText;
-              request._params = parsed.params;
-
-              _callAction(parsed.command, request, reply);
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      }
+      const request = new Request(channel, message, messageType, username);
+      messageHandler(request, userState, _getReply(channel, messageType));
     }); //- message
 
     // Start Loop
     interval = setInterval(function() {
       systemManager.notify('tick', {
         time: moment().valueOf(),
-        channel: clientConfig.channel,
-        plugins: Object.assign({}, plugins),
+        channel: clientConfig.channel
       });
     }, 60000);
     
     systemManager.notify('tick', {
       time: moment().valueOf(),
-      channel: clientConfig.channel,
-      plugins: Object.assign({}, plugins),
+      channel: clientConfig.channel
     });
 
     resolve();
   });
 }; //- _setupListeners()
-
-// _getReply()
-const _getReply = function _getReply(channel, messageType, command, username, request) {
-  let reply = client[messageType];
-  if ( messageType === 'chat' ) reply = client.say;
-
-  return function(message) {
-    command._trackCooldown(username);
-
-    variableManager.resolve(message, request)
-      .then((result) => {
-        reply.call(client, channel, result);
-      });
-  };
-}; //- _getReply()
 
 // -----
 //  Public

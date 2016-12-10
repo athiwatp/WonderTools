@@ -7,6 +7,12 @@ const glob = require('glob');
 const Command = require('./Command');
 
 // -----
+//  Fields
+// -----
+
+const PARAM_NAME_REGEX = /\w+/g;
+
+// -----
 //  CommandManager
 // -----
 
@@ -28,7 +34,7 @@ class CommandManager {
     const params = [];
     if ( paramsarr != null && paramsarr.length > 0 ) {
       paramsarr.forEach((param) => {
-        const matches = param.match(CommandManager.PARAM_NAME_REGEX);
+        const matches = param.match(PARAM_NAME_REGEX);
         if ( matches.length > 0 ) {
           const name = matches[0];
           const quoted = param.indexOf('"') === 0;
@@ -118,19 +124,7 @@ class CommandManager {
       });
     });
   }
-
-  // -----
-  //  Static
-  // -----
-
-  static get PARAMS_REGEX() {
-    return /"([^"]+)"|(\w+)/g;
-  }
-
-  static get PARAM_NAME_REGEX() {
-    return /\w+/g;
-  }
 };
 
 // Exports
-module.exports = CommandManager;
+module.exports = new CommandManager();

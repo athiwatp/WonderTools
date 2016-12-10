@@ -42,4 +42,4 @@ class PointsManager {
 };
 
 // Exports
-module.exports = PointsManager;
+module.exports = new PointsManager();

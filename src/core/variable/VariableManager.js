@@ -10,7 +10,7 @@ const Variable = require('./Variable');
 //  Fields
 // -----
 
-const FULL_VARIABLE_REGEX = /(\$\w+)((?=\s|$)|(\((.+)\)(?=\s|$)))/gi;
+const FULL_VARIABLE_REGEX = /(\$\w+)((?=[^(]|\s|$)|(\(([^)]*)\)(?=\s|$)))/gi;
 const VARIABLE_NAME_REGEX = /(\$\w+)/i;
 
 // -----
@@ -39,7 +39,7 @@ class VariableManager {
     this._variables.push(variable);
   }
 
-  _resolveOne(name, request) {
+  _resolveOne(name, request, fullMatch) {
     return new Promise((resolve, reject) => {
       const vari = this.getOne(name);
       if ( vari != null ) {
@@ -76,6 +76,17 @@ class VariableManager {
 
   resolve(message, request) {
     return new Promise((resolve, reject) => {
+      // const regexp = new RegExp(FULL_VARIABLE_REGEX);
+      // if ( regexp.test(message) === true ) {
+      //   let match;
+      //   while ( (match = regexp.exec(message)) != null ) {
+          
+      //   }
+      // }
+      // else {
+      //   //resolve(message);
+      // }
+
       const fullMatches = message.match(FULL_VARIABLE_REGEX);
 
       if ( fullMatches != null && fullMatches.length > 0 ) {
@@ -104,7 +115,7 @@ class VariableManager {
 
   getOne(name) {
     return this._variables.find((v) => {
-      return `$${ v.name }` === name;
+      return v.name === name;
     });
   }
 
@@ -143,4 +154,4 @@ class VariableManager {
 };
 
 // Exports
-module.exports = VariableManager;
+module.exports = new VariableManager();

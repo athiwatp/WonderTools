@@ -3,6 +3,8 @@
 const moment = require('moment');
 
 const System = require('../core/system/System');
+const viewerManager = require('../core/viewer/viewerManager');
+const pointsManager = require('./pointsManager');
 
 // -----
 //  PointSystem
@@ -41,9 +43,6 @@ class PointSystem extends System {
         const targetMinutes = this.config.updateInterval / 60000;
 
         if ( minutes >= targetMinutes ) {
-          const viewerManager = args.plugins.viewerManager;
-          const pointsManager = args.plugins.pointsManager;
-
           viewerManager.get(args.channel)
             .then((viewers) => {
               return Promise.all(viewers.map((v) => pointsManager.getOne(v.username, args.channel)));

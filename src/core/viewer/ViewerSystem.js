@@ -6,6 +6,8 @@ const request = require('request');
 const Viewer = require('./Viewer');
 const System = require('../system/System');
 
+const viewerManager = require('./viewerManager');
+
 // -----
 //  Fields
 // -----
@@ -53,7 +55,6 @@ class ViewerSystem extends System {
 
       if ( doUpdate === true ) {
         console.info('[ WT ] [ INFO ] Start updating viewers ....');
-        const viewerManager = args.plugins.viewerManager;
 
         this._lastUpdateTime = args.time;
         viewerManager.get(args.channel)
