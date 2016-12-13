@@ -58,6 +58,10 @@ class Request {
   get config() {
     return this._config;
   }
+
+  get metadata() {
+    return this._metadata;
+  }
 };
 
 module.exports = Request;

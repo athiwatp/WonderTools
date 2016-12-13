@@ -1,5 +1,7 @@
 "use strict";
 
+const Command = require('./core/command/Command');
+
 const commandManager = require('./core/command/commandManager');
 const viewerManager = require('./core/viewer/viewerManager');
 const variableManager = require('./core/variable/variableManager');
@@ -10,6 +12,8 @@ const pointsManager = require('./points/pointsManager');
 // -----
 
 const PARAMS_REGEX = /"([^"]+)"|(\w+)/g;
+const VARIABLE_REGEX = /(\$\w+)((?=[^(]|\s|$)|(\(([^)]*)\)(?=\s|$)))/gi;
+const VARIABLE_NAME_REGEX = /(\$\w+)/i;
 
 // -----
 //  Private
@@ -85,10 +89,92 @@ const _getViewer = function _getViewer(request, userState) {
   }
 }; //- _getViewer()
 
+// _resolveVariable()
+const _resolveVariable = function _resolveVariable(name, args, request) {
+  return new Promise((resolve, reject) => {
+    const vari = variableManager.getOne(name);
+    if ( vari != null ) {
+      const promises = [];
+      if ( args != null && args.length > 0 ) {
+        args.forEach((arg) => {
+          if ( VARIABLE_NAME_REGEX.test(arg) === true ) {
+            promises.push(_resolveVariable(arg, null, request));
+          }
+        });
+      }
+      
+      Promise.all(promises)
+        .then((result) => {
+          return Promise.resolve(vari.resolve(result, request))
+        })
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((error) => reject(error));
+    }
+    else {
+      resolve(null);
+    }
+  });
+}; //- _resolveVariable()
+
+// _resolveVariables()
+const _resolveVariables = function _resolveVariables(message, request) {
+  return new Promise((resolve, reject) => {
+    const regexp = new RegExp(VARIABLE_REGEX);
+    if ( regexp.test(message) === true ) {
+      regexp.lastIndex = 0;
+
+      const promises = [];
+
+      let match;
+      while ( (match = regexp.exec(message)) != null ) {
+        const vname = match[1];
+        let args = [];
+
+        if ( match.length >= 5 && match[4] != null ) {
+          args = match[4].split(/,\s?/);
+        }
+
+        promises.push(_resolveVariable(vname, args, request));
+      }
+
+      Promise.all(promises)
+        .then((result) => {
+          return Promise.resolve(_replaceVariables(message, result));
+        })
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((error) => reject(error));
+    }
+    else {
+      resolve(message);
+    }
+  });
+}; //- _resolveVariables()
+
+// _replaceVariables()
+const _replaceVariables = function _replaceVariables(message, variables) {
+  variables = variables || [];
+
+  let index = -1;
+  const newMessage = message.replace(VARIABLE_REGEX, (match) => {
+    index++;
+    if ( index <= variables.length - 1 ) {
+      return variables[index] || match;
+    }
+
+    return match;
+  });
+
+  return newMessage; 
+}; //- _replaceVariables()
+
 // _wrapReply()
 const _wrapReply = function _wrapReply(request, reply) {
   return function wrappedReply(message) {
-    variableManager.resolve(message, request)
+    _resolveVariables(message, request)
       .then((result) => {
         reply(result);
       })
@@ -101,6 +187,9 @@ const _wrapReply = function _wrapReply(request, reply) {
 // _callAction()
 const _callAction = function _callAction(command, request, reply) {
   command._trackCooldown(request.username);
+  if ( command.counterType === Command.COUNTER_AUTOMATIC ) {
+    command._trackCounter();
+  }
   
   let result = command.action.call(command, request, _wrapReply(request, reply));
   if ( !(result instanceof Promise) ) {
@@ -165,6 +254,7 @@ const handleMessage = function handleMessage(request, userState, reply) {
           request._viewer = viewer;
           request._command = parsed.commandText;
           request._params = parsed.params;
+          request._metadata = parsed.command.metadata;
 
           _callAction(parsed.command, request, reply);
         }
@@ -176,4 +266,6 @@ const handleMessage = function handleMessage(request, userState, reply) {
 }; //- handleMessage()
 
 // Exports
-module.exports = handleMessage;
+module.exports = {
+  handleMessage, _resolveVariables
+};

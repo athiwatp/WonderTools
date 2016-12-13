@@ -4,10 +4,10 @@ const Command = require('../../core/command/Command');
 const pointsManager = require('../pointsManager');
 
 // -----
-//  RemovePoints
+//  RemovePointsCommand
 // -----
 
-class RemovePoints extends Command {
+class RemovePointsCommand extends Command {
   // -----
   //  Properties
   // -----
@@ -68,4 +68,4 @@ class RemovePoints extends Command {
 };
 
 // Register
-module.exports = RemovePoints;
+module.exports = RemovePointsCommand;

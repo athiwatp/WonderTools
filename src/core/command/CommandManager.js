@@ -48,30 +48,40 @@ class CommandManager {
   }
 
   _register(command) {
-    if ( command == null || (command.command == null || command.command.length === 0) ) {
-      throw new Error('Command not provided!');
-    }
-
-    if ( typeof(command.action) !== 'function' ) {
-      throw new Error('The command must have an action!');
-    }
-
-    let messageTypes = command.messageTypes;
-    if ( !Array.isArray(messageTypes) || messageTypes.length === 0 ) {
-      messageTypes = [ 'chat' ];
-    }
-
-    // Register command
-    this._commands = this._commands.filter(cmd => cmd.command !== command.command);
-    this._commands.push(command);
-
-    // Register command by message type
-    messageTypes.forEach((mt) => {
-      if ( this._commandsByType[mt] == null ) {
-        this._commandsByType[mt] = {};
+    return new Promise((resolve, reject) => {
+      if ( command == null || (command.command == null || command.command.length === 0) ) {
+        reject(new Error('Command not provided!'));
       }
 
-      this._commandsByType[mt][command.command] = command;
+      if ( typeof(command.action) !== 'function' ) {
+        reject( new Error('The command must have an action!'));
+      }
+
+      if ( this._commands.find(c => c.command === command.command) != null ) {
+        reject(new Error(`A ${ command.command } command already exists!`));
+      }
+
+      let messageTypes = command.messageTypes;
+      if ( !Array.isArray(messageTypes) || messageTypes.length === 0 ) {
+        messageTypes = [ 'chat' ];
+      }
+
+      command._loadMetadata()
+        .then(() => {
+          // Register command
+          this._commands.push(command);
+
+          // Register command by message type
+          messageTypes.forEach((mt) => {
+            if ( this._commandsByType[mt] == null ) {
+              this._commandsByType[mt] = {};
+            }
+
+            this._commandsByType[mt][command.command] = command;
+          });
+
+          resolve();
+        });
     });
   }
 
@@ -95,7 +105,7 @@ class CommandManager {
       glob(root, (error, files) => {
         if ( error != null ) return reject(error);
 
-        let err = null;
+        const promises = [];
         files.forEach((file) => {
           try {
             const cmdClass = require(file);
@@ -106,21 +116,18 @@ class CommandManager {
               cmd._command = parsed.command;
               cmd._params = parsed.params;
 
-              this._register(cmd);
+              promises.push(this._register(cmd));
             }
           } 
           catch ( e ) {
-            err = e;
+            promises.push(Promise.reject(e));
             return;
           }
         });
 
-        if ( err != null ) {
-          reject(err);
-        } 
-        else {
-          resolve();
-        }
+        Promise.all(promises)
+          .then(resolve)
+          .catch(reject);
       });
     });
   }

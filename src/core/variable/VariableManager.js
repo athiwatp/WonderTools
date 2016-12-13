@@ -39,79 +39,9 @@ class VariableManager {
     this._variables.push(variable);
   }
 
-  _resolveOne(name, request, fullMatch) {
-    return new Promise((resolve, reject) => {
-      const vari = this.getOne(name);
-      if ( vari != null ) {
-        Promise.resolve(vari.resolve(null, request))
-          .then((result) => {
-            resolve(result);
-          });
-      }
-      else {
-        resolve(null);
-      }
-    });
-  }
-
-  _replaceVariables(message, variables) {
-    variables = variables || [];
-
-    let index = -1;
-    const newMessage = message.replace(FULL_VARIABLE_REGEX, (match) => {
-      index++;
-      if ( index <= variables.length - 1 ) {
-        return variables[index];
-      }
-
-      return match;
-    });
-
-    return newMessage; 
-  }
-
   // -----
   //  Public
   // -----
-
-  resolve(message, request) {
-    return new Promise((resolve, reject) => {
-      // const regexp = new RegExp(FULL_VARIABLE_REGEX);
-      // if ( regexp.test(message) === true ) {
-      //   let match;
-      //   while ( (match = regexp.exec(message)) != null ) {
-          
-      //   }
-      // }
-      // else {
-      //   //resolve(message);
-      // }
-
-      const fullMatches = message.match(FULL_VARIABLE_REGEX);
-
-      if ( fullMatches != null && fullMatches.length > 0 ) {
-        const promises = [];
-
-        fullMatches.forEach((match) => {
-          const vnmatch = match.match(VARIABLE_NAME_REGEX);
-          if ( vnmatch != null && vnmatch.length > 0 ) {
-            promises.push(this._resolveOne(vnmatch[0], request));
-          }
-        });
-
-        Promise.all(promises)
-          .then((result) => {
-            return Promise.resolve(this._replaceVariables(message, result));
-          })
-          .then((result) => {
-            resolve(result);
-          })
-      }
-      else {
-        resolve(message);
-      }
-    });
-  }
 
   getOne(name) {
     return this._variables.find((v) => {

@@ -4,10 +4,10 @@ const Command = require('../../core/command/Command');
 const pointsManager = require('../pointsManager');
 
 // -----
-//  GivePoints
+//  GivePointsCommand
 // -----
 
-class GivePoints extends Command {
+class GivePointsCommand extends Command {
   // -----
   //  Properties
   // -----
@@ -65,4 +65,4 @@ class GivePoints extends Command {
 };
 
 // Register
-module.exports = GivePoints;
+module.exports = GivePointsCommand;

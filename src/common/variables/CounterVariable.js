@@ -3,16 +3,16 @@
 const Variable = require('../../core/variable/Variable');
 
 // -----
-//  PointsVariable
+//  CounterVariable
 // -----
 
-class PointsVariable extends Variable {
+class CounterVariable extends Variable {
   // -----
   //  Properties
   // -----
 
   get name() {
-    return '$points';
+    return '$counter';
   }
 
   // -----
@@ -20,11 +20,9 @@ class PointsVariable extends Variable {
   // -----
 
   resolve(args, request) {
-    const points = request.viewer.points;
-    
-    return points.amount;
+    return request.metadata.counter;
   }
 }
 
 // Exports
-module.exports = PointsVariable;
+module.exports = CounterVariable;

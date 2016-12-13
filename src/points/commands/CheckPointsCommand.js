@@ -4,10 +4,10 @@ const Command = require('../../core/command/Command');
 const pointsManager = require('../pointsManager');
 
 // -----
-//  CheckPoints
+//  CheckPointsCommand
 // -----
 
-class CheckPoints extends Command {
+class CheckPointsCommand extends Command {
   // -----
   //  Properties
   // -----
@@ -51,4 +51,4 @@ class CheckPoints extends Command {
 };
 
 // Register
-module.exports = CheckPoints;
+module.exports = CheckPointsCommand;

@@ -3,10 +3,10 @@
 const Command = require('../../core/command/Command');
 
 // -----
-//  Points
+//  PointsCommand
 // -----
 
-class Points extends Command {
+class PointsCommand extends Command {
   // -----
   //  Properties
   // -----
@@ -41,4 +41,4 @@ class Points extends Command {
 };
 
 // Register
-module.exports = Points;
+module.exports = PointsCommand;

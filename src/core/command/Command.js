@@ -3,7 +3,26 @@
 const moment = require('moment');
 const _ = require('lodash');
 
+const Document = require('camo').Document;
+
 const config = require('../../../config.json');
+
+// -----
+//  CommandMetadata
+// -----
+
+class CommandMetadata extends Document {
+  constructor() {
+    super();
+
+    this.commandName = String;
+
+    this.counter = {
+      type: Number,
+      default: 0
+    };
+  }
+};
 
 // -----
 //  Command
@@ -63,9 +82,38 @@ class Command {
     return this.config.pointCost;
   }
 
+  get metadata() {
+    return this._metadata;
+  }
+
+  get counterType() {
+    return Command.COUNTER_NONE;
+  }
+
   // -----
   //  Private
   // -----
+
+  _loadMetadata() {
+    return new Promise((resolve, reject) => {
+      CommandMetadata.findOne({ commandName: this.command })
+        .then((metadata) => {
+          if ( metadata != null ) {
+            this._metadata = metadata;
+            resolve(this._metadata);
+          }
+          else {
+            CommandMetadata.create({ 
+              commandName: this.command 
+            }).save()
+              .then((metadata) => {
+                this._metadata = metadata;
+                resolve(this._metadata);
+              });
+          }
+        });
+    });
+  }
 
   _trackCooldown(username) {
     const now = moment().valueOf();
@@ -77,6 +125,15 @@ class Command {
     if ( this.userCooldown > 0 ) {
       this._cooldown[username] = now;
     }
+  }
+
+  _trackCounter(increase) {
+    increase = increase || 1;
+
+    this.metadata.counter += increase;
+    this.metadata.save();
+
+    return this.metadata.counter;
   }
 
   // -----
@@ -147,6 +204,18 @@ class Command {
 
   static get LEVEL_VIEWER() {
     return 5;
+  }
+
+  static get COUNTER_NONE() {
+    return 1;
+  }
+
+  static get COUNTER_AUTOMATIC() {
+    return 2;
+  }
+
+  static get COUNTER_MANUAL() {
+    return 3;
   }
 };
 

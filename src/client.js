@@ -74,7 +74,7 @@ const _setupListeners = function _setupListeners() {
       if ( username.toLowerCase() === clientConfig.identity.username.toLowerCase() ) return;
 
       const request = new Request(channel, message, messageType, username);
-      messageHandler(request, userState, _getReply(channel, messageType));
+      messageHandler.handleMessage(request, userState, _getReply(channel, messageType));
     }); //- message
 
     // Start Loop
@@ -106,10 +106,22 @@ const connect = function connect() {
     .then(_connect)
     .then(_setupListeners)
     .then(() => {
-      // variableManager.resolve("a test $user", { viewer: { displayName: 'WonderToys' } })
+      // messageHandler._resolveVariables("I've given $user $points $pointsName", 
+      //   { 
+      //     viewer: { 
+      //       displayName: 'WonderToys',
+      //       points: {
+      //         amount: 2
+      //       }
+      //     } 
+      //   })
       //   .then((result) => {
       //     console.log(result);
+      //   })
+      //   .catch((error) => {
+      //     console.error(error);
       //   });
+
       console.info('[ WT ] [ INFO ] Bot online.');
     })
     .catch((e) => { 

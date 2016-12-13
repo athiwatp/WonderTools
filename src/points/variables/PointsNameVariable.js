@@ -4,10 +4,10 @@ const Variable = require('../../core/variable/Variable');
 const systemManager = require('../../core/system/systemManager');
 
 // -----
-//  PointsName
+//  PointsNameVariable
 // -----
 
-class PointsName extends Variable {
+class PointsNameVariable extends Variable {
   // -----
   //  Properties
   // -----
@@ -22,10 +22,10 @@ class PointsName extends Variable {
 
   resolve(args, request) {
     const pointsSystem = systemManager.getOne('$PointsSystem');
-    
+
     return pointsSystem.config.name;
   }
 }
 
 // Exports
-module.exports = PointsName;
+module.exports = PointsNameVariable;

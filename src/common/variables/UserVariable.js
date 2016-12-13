@@ -3,10 +3,10 @@
 const Variable = require('../../core/variable/Variable');
 
 // -----
-//  User
+//  UserVariable
 // -----
 
-class User extends Variable {
+class UserVariable extends Variable {
   // -----
   //  Properties
   // -----
@@ -25,4 +25,4 @@ class User extends Variable {
 }
 
 // Exports
-module.exports = User;
+module.exports = UserVariable;
