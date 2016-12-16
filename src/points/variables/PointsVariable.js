@@ -21,7 +21,7 @@ class PointsVariable extends Variable {
 
   resolve(args, request) {
     const points = request.viewer.points;
-    
+
     return points.amount;
   }
 }

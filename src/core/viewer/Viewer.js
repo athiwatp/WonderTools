@@ -37,9 +37,9 @@ class Viewer extends Document {
       default: false
     };
 
-    this.metadata = {
-      type: Object,
-      default: {}   
+    this.lastSeen = {
+      type: Date,
+      default: Date.now
     };
   }
 

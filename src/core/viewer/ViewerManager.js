@@ -11,53 +11,73 @@ const api = require('../../api');
 // TODO: This whole file needs a clean up
 // ***
 class ViewerManager {
+  constructor() {
+    this._activeViewers = {};
+  }
+
   // -----
   //  Private
   // -----
 
-  _getViewerInfo(username, channel, data) {
-    return new Promise((resolve, reject) => {
-      username = username.toLowerCase();
-
-      Viewer.findOne({ username })
-        .then((doc) => {
-          if ( doc == null ) {
-            if ( data == null ) {
-              api.getUser(username)
-                .then((user) => {
-
-                  const newViewer = Viewer.create({
-                    userId: user.userId.toString(),
-                    username: user.username,
-                    displayName: user.displayName,
-                    channel: channel,
-                  });
-
-                  return newViewer.save();
-                })
-                .then((v) => {
-                  resolve(v);
-                })
-                .catch((error) => {
-                  reject(error);
-                });
-            }
-            else {
-              const newViewer = Viewer.create(data);
-              return newViewer.save();
-            }
+  _findAndUpdateViewer(viewer) {
+    const username = viewer.username;
+    const channel = viewer.channel.replace('#', '');
+    
+    return Viewer.findOne({ username, channel })
+      .then((v) => {
+        if ( v != null ) {
+          for ( var key in viewer ) {
+            v[key] = viewer[key];
           }
-          else {
-            resolve(doc);
-          }
-        });
-    });
+
+          return v.save();
+        }
+        else {
+          const newViewer = Viewer.create(viewer);
+          return newViewer.save();
+        }
+      });
   }
 
   _updateFollowing(viewer, channel) {
+    channel = channel.replace('#', '');
+
     return api.getUserFollowsChannel(viewer.username, channel)
       .then((follows) => {
         viewer.isFollower = follows;
+        return viewer.save();
+      });
+  }
+
+  _updateActiveViewers(channel) {
+    channel = channel.replace('#', '');
+
+    return api.getChannelViewers(channel)
+      .then((viewers) => {
+        return Promise.all(viewers.map((v) => this._trackActive(v.username, channel, true, v)));
+      })
+      .catch((error) => {
+        console.error('$ViewerManager', error);
+      });
+  }
+
+  _trackActive(username, channel, active, data) {
+    data = data || {};
+    channel = channel.replace('#', '');
+
+    const viewer = Object.assign(data, { username, channel });
+    if ( active ) viewer.lastSeen = Date.now();
+
+    return this._findAndUpdateViewer(viewer)
+      .then((viewer) => {
+        this._activeViewers[channel] = (this._activeViewers[channel] || []).filter((v) => {
+          return v.username.toLowerCase() !== viewer.username.toLowerCase();
+        });
+
+        if ( active === true ) {
+          this._activeViewers[channel].push(viewer);
+        }
+
         return Promise.resolve(viewer);
       });
   }
@@ -65,43 +85,21 @@ class ViewerManager {
   // -----
   //  Public
   // -----
+  
+  get(channel) {
+    channel = channel.replace('#', '');
+    const viewers = this._activeViewers[channel] || [];
 
-  get(channel, data) {
-    return api.getChannelViewers(channel)
-      .then((viewers) => {
-        return Promise.all(viewers.map((v) => {
-          return this._getViewerInfo(v.name, channel, data)
-            .then((viewer) => {
-              viewer.isModerator = v.isMod;
-              return viewer.save();
-            });
-        }));
-      })
-      .then((viewers) => {
-        return Promise.all(viewers.map(v => this._updateFollowing(v, channel)));
-      })
-      .catch((error) => {
-        console.error('$ViewerManager', error);
-      });
+    return Promise.resolve(viewers);
   }
 
-  getOne(username, channel, data) {
-    return this._getViewerInfo(username, channel, data)
-      .then((viewer) => {
-        if ( data != null ) {
-          viewer.isModerator = data.isModerator;
-          viewer.isSubscriber = data.isSubscriber;
-          viewer.isBroadcaster = data.isBroadcaster;
-        }
+  getOne(username, channel) {
+    channel = channel.replace('#', '');
+    const viewers = this._activeViewers[channel] || [];
 
-        return Promise.resolve(viewer);
-      })
-      .then((viewer) => {
-        return this._updateFollowing(viewer, channel);
-      })
-      .then((viewer) => {
-        return viewer.save();
-      });
+    return new Promise((resolve, reject) => {
+      resolve(viewers.find((v) => v.username.toLowerCase() === username.toLowerCase()));
+    });
   }
 };
 

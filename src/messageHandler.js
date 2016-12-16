@@ -1,11 +1,12 @@
 "use strict";
 
+const moment = require('moment');
+
 const Command = require('./core/command/Command');
 
 const commandManager = require('./core/command/commandManager');
 const viewerManager = require('./core/viewer/viewerManager');
 const variableManager = require('./core/variable/variableManager');
-const pointsManager = require('./points/pointsManager');
 
 // -----
 //  Fields
@@ -45,49 +46,6 @@ const _parseMessage = function _parseMessage(text, messageType) {
     return { commandText, command, params };
   }
 }; //- _parseMessage()
-
-// _getViewerInfo()
-const _getViewerInfo = function _getViewerInfo(request, data) {
-  const username = request.username;
-  const channel = request.channel;
-
-  return new Promise((resolve, reject) => {
-    viewerManager.getOne(username, channel, data)
-      .then((viewer) => {
-        pointsManager.getOne(username, channel)
-          .then((points) => {
-            viewer.points = points;
-            resolve(viewer);
-          })
-          .catch((error) => {
-            reject(error);
-          })
-      })
-      .catch((error) => {
-        reject(error);
-      })
-  });
-}; //- _getViewerInfo()
-
-// _getViewer()
-const _getViewer = function _getViewer(request, userState) {
-  if ( request.viewer == null ) {
-    const data = {
-      userId: userState['user-id'],
-      isModerator: userState.mod,
-      isSubscriber: userState.subscriber,
-      isBroadcaster: userState['user-type'] === 'broadcaster',
-      displayName: userState['display-name'],
-      channel: request.channel, 
-      username: request.username
-    };
-
-    return _getViewerInfo(request, data);
-  }
-  else {
-    return Promise.resolve(request.viewer);
-  }
-}; //- _getViewer()
 
 // _resolveVariable()
 const _resolveVariable = function _resolveVariable(name, args, request) {
@@ -162,7 +120,11 @@ const _replaceVariables = function _replaceVariables(message, variables) {
   const newMessage = message.replace(VARIABLE_REGEX, (match) => {
     index++;
     if ( index <= variables.length - 1 ) {
-      return variables[index] || match;
+      if ( variables[index] != null ) {
+        return variables[index];
+      }
+
+      return match;
     }
 
     return match;
@@ -191,7 +153,7 @@ const _callAction = function _callAction(command, request, reply) {
     command._trackCounter();
   }
   
-  let result = command.action.call(command, request, _wrapReply(request, reply));
+  let result = command.action.call(command, request, reply);
   if ( !(result instanceof Promise) ) {
     if ( result instanceof Error ) {
       result = Promise.reject(result);
@@ -219,49 +181,44 @@ const _callAction = function _callAction(command, request, reply) {
 // -----
 
 // handleMessage()
-const handleMessage = function handleMessage(request, userState, reply) {
+const handleMessage = function handleMessage(request, reply) {
   const message = request.message;
   const messageType = request.messageType;
   const username = request.username;
+  const viewer = request.viewer;
 
   const parsed = _parseMessage(message, messageType);
   if ( parsed != null ) {
-    _getViewer(request, userState)
-      .then((viewer) => {
-        // Ensure the command isn't on cooldown
-        const cooldown = parsed.command.onCooldown(username);
-        if ( cooldown !== false && moment.isDuration(cooldown) ) {
-          const secs = Math.round(cooldown.asSeconds());
-          reply(`Hey ${ viewer.displayName }, you have another ${ secs }s to wait before you can execute that again!`);
-          return;
-        }
+    reply = _wrapReply(request, reply);
 
-        // Ensure we can afford the command
-        if ( parsed.command.pointCost != null && parsed.command.pointCost > 0 ) {
-          if ( viewer.points.amount < parsed.command.pointCost ) {
-            reply(`Hey ${ viewer.displayName }, you can't afford that action! FeelsBadMan`);
-            return;
-          }
-        }
+    const cooldown = parsed.command.onCooldown(username);
+    if ( cooldown !== false && moment.isDuration(cooldown) ) {
+      const secs = Math.round(cooldown.asSeconds());
+      reply(`Hey $user, you have another ${ secs }s to wait before you can execute that again!`);
+      return;
+    }
 
-        // Ensure we have a high enough access level
-        if ( parsed.command.canExecute(viewer, userState) ) {
-          if ( parsed.params === false ){
-            reply(`USAGE: ${ parsed.command.usage }`);
-            return;
-          }
+    // Ensure we can afford the command
+    if ( parsed.command.pointCost != null && parsed.command.pointCost > 0 ) {
+      if ( viewer.points.amount < parsed.command.pointCost ) {
+        reply(`Hey ${ viewer.displayName }, you can't afford that action! FeelsBadMan`);
+        return;
+      }
+    }
 
-          request._viewer = viewer;
-          request._command = parsed.commandText;
-          request._params = parsed.params;
-          request._metadata = parsed.command.metadata;
+    // Ensure we have a high enough access level
+    if ( parsed.command.canExecute(viewer) ) {
+      if ( parsed.params === false ){
+        reply(`USAGE: ${ parsed.command.usage }`);
+        return;
+      }
 
-          _callAction(parsed.command, request, reply);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+      request._command = parsed.commandText;
+      request._params = parsed.params;
+      request._metadata = parsed.command.metadata;
+
+      _callAction(parsed.command, request, reply);
+    }
   }
 }; //- handleMessage()
 

@@ -12,7 +12,8 @@ class PointsManager {
   // -----
   getOne(username, channel) {
     username = username.toLowerCase();
-
+    channel = channel.replace('#', '');
+    
     return new Promise((resolve, reject) => {
       Points.findOne({ username, channel })
         .then((doc) => {

@@ -144,12 +144,11 @@ class Command {
     return viewer.accessLevel <= this.accessLevel;
   }
 
-  onCooldown(viewer) {
+  onCooldown(username) {
     if ( this.cooldown <= 0 && this.userCooldown <= 0 ) {
       return false;
     }
 
-    const username = viewer.username;
     const globalCD = this.cooldown / 1000;
     const userCD = this.userCooldown / 1000;
 

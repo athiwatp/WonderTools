@@ -7,6 +7,8 @@ const Variable = require('../../core/variable/Variable');
 // -----
 
 class UserVariable extends Variable {
+  constructor() { super(); }
+  
   // -----
   //  Properties
   // -----
@@ -20,7 +22,7 @@ class UserVariable extends Variable {
   // -----
 
   resolve(args, request) {
-    return request.viewer.displayName;
+    return request.viewer.displayName || request.viewer.username;
   }
 }
 

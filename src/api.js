@@ -43,8 +43,9 @@ const getChannelViewers = function getChannelViewers(channel) {
         const array = chatters[key];
         array.forEach((viewer) => {
           viewers.push({
-            name: viewer,
-            isMod: key.toLowerCase() === 'moderators',
+            username: viewer,
+            isModerator: key.toLowerCase() !== 'viewers',
+            channel
           });
         });
       });

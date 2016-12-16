@@ -6,6 +6,8 @@ const moment = require('moment');
 const commandManager = require('./core/command/commandManager');
 const systemManager = require('./core/system/systemManager');
 const variableManager = require('./core/variable/variableManager');
+const viewerManager = require('./core/viewer/viewerManager');
+const pointsManager = require('./points/pointsManager');
 const Request = require('./Request');
 
 const config = require('../config.json');
@@ -56,6 +58,8 @@ const _setupListeners = function _setupListeners() {
   return new Promise((resolve, reject) => {
     // join
     client.on('join', (channel, user) => {
+      viewerManager._trackActive(user, channel.replace('#', ''), true);
+
       if ( user === me ) {
         if ( !client.isMod(channel, me) && channel !== `#${ me }`) {
           console.warn(`[ WT ] [ WARN ] Not a mod in channel ${ channel }`)
@@ -64,17 +68,37 @@ const _setupListeners = function _setupListeners() {
     });
     //- join
 
+    // part
+    client.on('part', (channel, user) => {
+      viewerManager._trackActive(user, channel.replace('#', ''), false);
+    });
+    //- part
+
     // message
-    // TODO: Clean this up, it's a mess.
     client.on('message', (channel, userState, message, isSelf) => {
       const messageType = userState['message-type'];
-      const userId = userState['user-id'];
-      const username = userState.username;
+      const userData = {
+        username: userState.username,
+        userId: userState['user-id'],
+        displayName: userState['display-name'],
+        isBroadcaster: userState['user-type'] === 'broadcaster',
+        isModerator: userState.mod,
+        isSubscriber: userState.subscriber
+      };
+      viewerManager._trackActive(userData.username, channel.replace('#', ''), true, userData)
+        .then((viewer) => {
+          return pointsManager.getOne(userData.username, channel)
+            .then((points) => {
+              viewer.points = points;
+              return Promise.resolve(viewer);
+            });
+        })
+        .then((viewer) => {
+          if ( viewer.username.toLowerCase() === clientConfig.identity.username.toLowerCase() ) return;
 
-      if ( username.toLowerCase() === clientConfig.identity.username.toLowerCase() ) return;
-
-      const request = new Request(channel, message, messageType, username);
-      messageHandler.handleMessage(request, userState, _getReply(channel, messageType));
+          const request = new Request(channel, message, messageType, viewer);
+          messageHandler.handleMessage(request, _getReply(channel, messageType));
+        });
     }); //- message
 
     // Start Loop
@@ -106,22 +130,6 @@ const connect = function connect() {
     .then(_connect)
     .then(_setupListeners)
     .then(() => {
-      // messageHandler._resolveVariables("I've given $user $points $pointsName", 
-      //   { 
-      //     viewer: { 
-      //       displayName: 'WonderToys',
-      //       points: {
-      //         amount: 2
-      //       }
-      //     } 
-      //   })
-      //   .then((result) => {
-      //     console.log(result);
-      //   })
-      //   .catch((error) => {
-      //     console.error(error);
-      //   });
-
       console.info('[ WT ] [ INFO ] Bot online.');
     })
     .catch((e) => { 

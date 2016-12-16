@@ -12,7 +12,7 @@ const viewerManager = require('./viewerManager');
 //  Fields
 // -----
 
-const UPDATE_TIMER = 2;
+const UPDATE_TIMER = 30;
 
 // -----
 //  ViewerSystem
@@ -57,7 +57,7 @@ class ViewerSystem extends System {
         console.info('[ WT ] [ INFO ] Start updating viewers ....');
 
         this._lastUpdateTime = args.time;
-        viewerManager.get(args.channel)
+        viewerManager._updateActiveViewers(args.channel)
           .then(() => {
             console.info('[ WT ] [ INFO ] Finish updating viewers ....');
           })

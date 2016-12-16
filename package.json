@@ -16,10 +16,12 @@
   ],
   "dependencies": {
     "camo": "^0.12.3",
+    "cheerio": "^0.22.0",
     "glob": "^7.1.1",
     "lodash": "^4.16.6",
     "moment": "^2.16.0",
     "nedb": "^1.8.0",
+    "node-horseman": "^3.2.0",
     "node-uuid": "^1.4.7",
     "request": "^2.78.0",
     "tmi.js": "^1.1.2"
