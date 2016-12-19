@@ -1,5 +1,5 @@
 {
-  "name": "wondertoys",
+  "name": "wondertools",
   "version": "0.1.0",
   "description": "A highly customizable Twitch chat bot.",
   "main": "index.js",
