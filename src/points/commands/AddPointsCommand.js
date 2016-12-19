@@ -37,8 +37,8 @@ class AddPointsCommand extends Command {
   //  Public
   // -----
   action(request, reply) {
-    const target = request.params.target;
-    let amount = parseInt(request.params.amount);
+    const target = request.params[0];
+    let amount = parseInt(request.params[1]);
     
     if ( isNaN(amount) ) {
       reply("That's not a number, what am I supposed to do with that?");

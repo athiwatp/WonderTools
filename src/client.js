@@ -43,16 +43,6 @@ const _connect = function _connect() {
   return client.connect();
 }; //- _connect()
 
-// _getReply()
-const _getReply = function _getReply(channel, messageType) {
-  let reply = client[messageType];
-  if ( messageType === 'chat' ) reply = client.say;
-
-  return function(message) {
-    reply.call(client, channel, message);
-  };
-}; //- _getReply()
-
 // _setupListeners()
 const _setupListeners = function _setupListeners() {
   return new Promise((resolve, reject) => {
@@ -97,7 +87,7 @@ const _setupListeners = function _setupListeners() {
           if ( viewer.username.toLowerCase() === clientConfig.identity.username.toLowerCase() ) return;
 
           const request = new Request(channel, message, messageType, viewer);
-          messageHandler.handleMessage(request, _getReply(channel, messageType));
+          messageHandler.handleMessage(request, client);
         });
     }); //- message
 

@@ -38,6 +38,7 @@ class CommandManager {
         if ( matches.length > 0 ) {
           const name = matches[0];
           const quoted = param.indexOf('"') === 0;
+          const optional = param.endsWith('?');
 
           params.push({ name, quoted });
         }

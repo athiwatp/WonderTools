@@ -37,7 +37,7 @@ class CheckPointsCommand extends Command {
   //  Public
   // -----
   action(request, reply) {
-    const target = request.params.target;
+    const target = request.params[0];
 
     pointsManager.getOne(target, request.channel)
       .then((points) => {

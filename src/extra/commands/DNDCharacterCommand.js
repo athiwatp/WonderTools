@@ -14,7 +14,7 @@ class DNDCharacterCommand extends Command {
   // -----
 
   get usage() {
-    return '!wtfdnd';
+    return '!wtfdnd [target]?';
   }
 
   get name() {
@@ -39,7 +39,7 @@ class DNDCharacterCommand extends Command {
     const location = this.config.location[(Math.floor(Math.random() * this.config.location.length) + 1 ) -1].toUpperCase();
     const backstory = this.config.backstory[(Math.floor(Math.random() * this.config.backstory.length) + 1 ) -1].toUpperCase();
 
-    reply(`$user is a FUCKING ${ adjective.toUpperCase() } ${ race } ${ klass } FROM ${ location } WHO ${ backstory}.`);
+    reply(`$target is a FUCKING ${ adjective.toUpperCase() } ${ race } ${ klass } FROM ${ location } WHO ${ backstory}.`);
   }
 };
 

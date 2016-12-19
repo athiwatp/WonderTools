@@ -1,12 +1,16 @@
 "use strict";
 
 const moment = require('moment');
+const isUrl = require('validator/lib/isUrl');
+
+const config = require('../config.json');
 
 const Command = require('./core/command/Command');
-
 const commandManager = require('./core/command/commandManager');
 const viewerManager = require('./core/viewer/viewerManager');
 const variableManager = require('./core/variable/variableManager');
+
+const replyBuilder = require('./replyBuilder');
 
 // -----
 //  Fields
@@ -28,18 +32,14 @@ const _parseMessage = function _parseMessage(text, messageType) {
 
   const command = commandManager.getOne(commandText, messageType);
   if ( command != null ) {
-    let params = {};
+    let params = [];
     if ( Array.isArray(command.params) && command.params.length > 0 ) {
       const matches = paramString.match(PARAMS_REGEX);
 
-      if ( matches != null && matches.length >= command.params.length ) {
-        params = command.params.reduce((previous, current, index) => {
-          previous[current.name] = matches[index].replace('"', '');
-          return previous;
-        }, {});
-      }
-      else {
-        params = false;
+      if ( matches != null ) {
+        params = matches.map((item) => {
+          return item.replace('"', '');
+        });
       }
     }
 
@@ -133,19 +133,6 @@ const _replaceVariables = function _replaceVariables(message, variables) {
   return newMessage; 
 }; //- _replaceVariables()
 
-// _wrapReply()
-const _wrapReply = function _wrapReply(request, reply) {
-  return function wrappedReply(message) {
-    _resolveVariables(message, request)
-      .then((result) => {
-        reply(result);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
-}; //- _wrapReply()
-
 // _callAction()
 const _callAction = function _callAction(command, request, reply) {
   command._trackCooldown(request.username);
@@ -181,16 +168,37 @@ const _callAction = function _callAction(command, request, reply) {
 // -----
 
 // handleMessage()
-const handleMessage = function handleMessage(request, reply) {
+const handleMessage = function handleMessage(request, client) {
   const message = request.message;
   const messageType = request.messageType;
   const username = request.username;
   const viewer = request.viewer;
 
-  const parsed = _parseMessage(message, messageType);
-  if ( parsed != null ) {
-    reply = _wrapReply(request, reply);
+  const modConfig = config.systems['$ModSystem'];
+  const linkConfig = modConfig.links;
 
+  const parsed = _parseMessage(message, messageType);
+  const reply = replyBuilder(request, client, _resolveVariables);
+
+  if ( parsed == null && linkConfig.block === true ) {
+    const parts = message.split(' ');
+    let foundLink = false;
+    parts.forEach((msg) => {
+      if ( isUrl(msg) === true ) {
+        foundLink = true;
+        return;
+      }
+    });
+
+    if ( foundLink === true ) {
+      reply(`/timeout $user ${ linkConfig.timeout }`);
+      reply(`Hey $user, we don't allow that kind 'round here! (Link timeout: ${ linkConfig.timeout }s)`);
+
+      return;
+    }
+  }
+
+  if ( parsed != null ) {
     const cooldown = parsed.command.onCooldown(username);
     if ( cooldown !== false && moment.isDuration(cooldown) ) {
       const secs = Math.round(cooldown.asSeconds());
@@ -208,11 +216,6 @@ const handleMessage = function handleMessage(request, reply) {
 
     // Ensure we have a high enough access level
     if ( parsed.command.canExecute(viewer) ) {
-      if ( parsed.params === false ){
-        reply(`USAGE: ${ parsed.command.usage }`);
-        return;
-      }
-
       request._command = parsed.commandText;
       request._params = parsed.params;
       request._metadata = parsed.command.metadata;
