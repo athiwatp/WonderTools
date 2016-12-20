@@ -7,8 +7,6 @@ const Variable = require('../../core/variable/Variable');
 // -----
 
 class TargetVariable extends Variable {
-  constructor() { super(); }
-  
   // -----
   //  Properties
   // -----

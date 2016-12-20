@@ -10,10 +10,11 @@ const viewerManager = require('./core/viewer/viewerManager');
 const pointsManager = require('./points/pointsManager');
 const Request = require('./Request');
 
+const commandResolver = require('./resolvers/commandResolver');
+const variableResolver = require('./resolvers/variableResolver');
+
 const config = require('../config.json');
 const clientConfig =  config.client;
-
-const messageHandler = require('./messageHandler');
 
 const me = clientConfig.identity.username;
 
@@ -43,6 +44,92 @@ const _connect = function _connect() {
   return client.connect();
 }; //- _connect()
 
+// _wrapReply()
+const _wrapReply = function _wrapReply(request, reply) {
+  return function wrappedReply(message) {
+    variableResolver.resolve(message, request)
+      .then((result) => {
+        reply(request.channel, result);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+}; //- _wrapReply()
+
+// _getReply()
+const _getReply = function _getReply(request) {
+  const messageType = request.messageType;
+
+  let reply = client[messageType];
+  if ( messageType === 'chat' ) reply = client.say;
+
+  const wrappedReply = _wrapReply(request, reply.bind(client));
+
+  wrappedReply.say = _wrapReply(request, client.say.bind(client));
+  wrappedReply.whisper = _wrapReply(request, client.whisper.bind(client));
+
+  return wrappedReply;
+}; //- _getReply()
+
+// _handleRequest()
+const _handleRequest = function _handleRequest(request) {
+  const message = request.message;
+  const messageType = request.messageType;
+  const username = request.username;
+  const viewer = request.viewer;
+
+  const modConfig = config.systems['$ModSystem'];
+  const linkConfig = modConfig.links;
+
+  const parsed = commandResolver.resolve(message, messageType);
+  const reply = _getReply(request);
+
+  if ( parsed == null && linkConfig.block === true ) {
+    const parts = message.split(' ');
+    let foundLink = false;
+    parts.forEach((msg) => {
+      if ( isUrl(msg) === true ) {
+        foundLink = true;
+        return;
+      }
+    });
+
+    if ( foundLink === true ) {
+      reply(`/timeout $user ${ linkConfig.timeout }`);
+      reply(`Hey $user, we don't allow that kind 'round here! (Link timeout: ${ linkConfig.timeout }s)`);
+
+      return;
+    }
+  }
+
+  if ( parsed != null ) {
+    const cooldown = parsed.command.onCooldown(username);
+    if ( cooldown !== false && moment.isDuration(cooldown) ) {
+      const secs = Math.round(cooldown.asSeconds());
+      reply(`Hey $user, you have another ${ secs }s to wait before you can execute that again!`);
+      return;
+    }
+
+    // Ensure we can afford the command
+    if ( parsed.command.pointCost != null && parsed.command.pointCost > 0 ) {
+      if ( viewer.points.amount < parsed.command.pointCost ) {
+        reply(`Hey ${ viewer.displayName }, you can't afford that action! FeelsBadMan`);
+        return;
+      }
+    }
+
+    // Ensure we have a high enough access level
+    if ( parsed.command.canExecute(viewer) ) {
+      request._command = parsed.commandText;
+      request._params = parsed.params;
+      request._metadata = parsed.command.metadata;
+
+      commandResolver.execute(parsed.command, request, reply);
+    }
+  }
+}; //- _handleRequest()
+
 // _setupListeners()
 const _setupListeners = function _setupListeners() {
   return new Promise((resolve, reject) => {
@@ -66,6 +153,8 @@ const _setupListeners = function _setupListeners() {
 
     // message
     client.on('message', (channel, userState, message, isSelf) => {
+      if ( userState.username.toLowerCase() === clientConfig.identity.username.toLowerCase() ) return;
+
       const messageType = userState['message-type'];
       const userData = {
         username: userState.username,
@@ -84,10 +173,8 @@ const _setupListeners = function _setupListeners() {
             });
         })
         .then((viewer) => {
-          if ( viewer.username.toLowerCase() === clientConfig.identity.username.toLowerCase() ) return;
-
           const request = new Request(channel, message, messageType, viewer);
-          messageHandler.handleMessage(request, client);
+          _handleRequest(request);
         });
     }); //- message
 
