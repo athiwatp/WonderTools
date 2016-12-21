@@ -30,7 +30,8 @@ class CommandMetadata extends Document {
 
 class Command {
   constructor() {
-    this._cooldown = {};
+    this._cooldownTimers = {};
+    this._metadata = {};
   }
 
   // -----
@@ -41,7 +42,11 @@ class Command {
     let cfg = {};
     if ( config.commands != null ) {
       const globalConfig = config.commands.$global || {};
-      const cmdConfig = config.commands[this.name.toLowerCase()] || {};
+
+      let cmdConfig = {};
+      if ( this.__isCustom !== true && this.name != null && this.name.length > 0 ) {
+        cmdConfig = config.commands[this.name.toLowerCase()] || {};
+      }
 
       cfg = _.merge(cfg, globalConfig, cmdConfig);
     }
@@ -58,28 +63,32 @@ class Command {
     return this._command;
   }
 
-  get params() {
-    return this._params;
-  }
-
   get messageTypes() {
-    return [ 'chat' ];
+    return this._messageTypes || [ 'chat' ];
   }
 
   get accessLevel() {
-    return Command.LEVEL_VIEWER;
+    return this._accessLevel || Command.LEVEL_VIEWER;
   }
 
   get cooldown() {
+    if ( this._cooldown > 0 ) {
+      return this._cooldown;
+    }
+
     return this.config.cooldown;
   }
 
   get userCooldown() {
+    if ( this._userCooldown > 0 ) {
+      return this._userCooldown;
+    }
+
     return this.config.userCooldown;
   }
 
   get pointCost() {
-    return this.config.pointCost;
+    return this._pointCost || this.config.pointCost;
   }
 
   get metadata() {
@@ -87,7 +96,7 @@ class Command {
   }
 
   get counterType() {
-    return Command.COUNTER_NONE;
+    return this._counterType || Command.COUNTER_NONE;
   }
 
   // -----
@@ -119,11 +128,11 @@ class Command {
     const now = moment().valueOf();
 
     if ( this.cooldown > 0 ) {
-      this._cooldown['$global'] = now;
+      this._cooldownTimers['$global'] = now;
     }
 
     if ( this.userCooldown > 0 ) {
-      this._cooldown[username] = now;
+      this._cooldownTimers[username] = now;
     }
   }
 
@@ -140,6 +149,11 @@ class Command {
   //  Public
   // -----
 
+  enable(enabled) {
+    this._metadata.enabled = enabled;
+    return this._metadata.save();
+  }
+
   canExecute(viewer) {
     return viewer.accessLevel <= this.accessLevel;
   }
@@ -155,8 +169,8 @@ class Command {
     // Check Global Cooldown
     const now = moment();
 
-    if ( this._cooldown['$global'] != null ) {
-      const lastGlobal = moment(this._cooldown['$global']);
+    if ( this._cooldownTimers['$global'] != null ) {
+      const lastGlobal = moment(this._cooldownTimers['$global']);
       const globalDiff = Math.round(moment.duration(now.diff(lastGlobal)).asSeconds());
 
       if ( globalDiff < globalCD ) {
@@ -165,8 +179,8 @@ class Command {
     } 
 
     // Check User Cooldown
-    if ( username != null && this._cooldown[username] != null ) {
-      const lastUser = moment(this._cooldown[username]);
+    if ( username != null && this._cooldownTimers[username] != null ) {
+      const lastUser = moment(this._cooldownTimers[username]);
       const userDiff = Math.round(moment.duration(now.diff(lastUser)).asSeconds());
 
       if ( userDiff < userCD ) {

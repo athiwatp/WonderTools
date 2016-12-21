@@ -93,7 +93,7 @@ const getUserFollowsChannel = function getUserFollowsChannel(username, channel) 
         resolve(false);
       }
       else {
-        resolve(true);
+        resolve(new Date(JSON.parse(body).created_at));
       }
     });
   });

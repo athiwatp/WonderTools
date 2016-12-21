@@ -41,6 +41,11 @@ class Viewer extends Document {
       type: Date,
       default: Date.now
     };
+
+    this.followDate = {
+      type: Date,
+      default: null
+    };
   }
 
   // -----

@@ -3,11 +3,54 @@
 const Command = require('../core/command/Command');
 const commandManager = require('../core/command/commandManager');
 
-const PARAMS_REGEX = /"([^"]+)"|(\w+)/g;
-
 // -----
 //  Private
 // -----
+
+// _parseParams()
+const _parseParams = function _parseParams(str) {
+  const params = [];
+  let readingPart = false;
+  let part = '';
+
+  for ( var i = 0; i <= str.length - 1; i++ ) {        
+    if ( str.charAt(i) === ' ' && !readingPart ) {
+      if ( part.length > 0 ) { 
+        params.push(part);
+      }
+      part = '';
+    } 
+    else {
+      if ( str.charAt(i) === '"' ) {
+        readingPart = !readingPart;
+      } 
+      else {
+        part += str.charAt(i);
+      }
+    }
+  }
+
+  if ( part != null && part.length > 0 ) {
+    params.push(part);
+  }
+
+  params.flags = {};
+  params.forEach((param) => {
+    if ( param.startsWith('--') ) {
+      const split = param.split('=');
+      const paramName = split[0].replace('--', '');
+      let paramValue = true;
+
+      if ( split.length > 1 ) {
+        paramValue = split[1];
+      }
+
+      params.flags[paramName] = paramValue;
+    }
+  });
+
+  return params;
+}; //- _parseParams()
 
 // _resolve()
 const _resolve = function _resolve(text, messageType) {
@@ -17,17 +60,7 @@ const _resolve = function _resolve(text, messageType) {
 
   const command = commandManager.getOne(commandText, messageType);
   if ( command != null ) {
-    let params = [];
-    if ( Array.isArray(command.params) && command.params.length > 0 ) {
-      const matches = paramString.match(PARAMS_REGEX);
-
-      if ( matches != null ) {
-        params = matches.map((item) => {
-          return item.replace('"', '');
-        });
-      }
-    }
-
+    const params = _parseParams(paramString);
     return { commandText, command, params };
   }
 }; //- _resolve()

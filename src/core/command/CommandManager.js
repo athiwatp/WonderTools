@@ -5,6 +5,7 @@ const path = require('path');
 const glob = require('glob');
 
 const Command = require('./Command');
+const CustomCommand = require('./CustomCommand');
 
 // -----
 //  Fields
@@ -25,28 +26,6 @@ class CommandManager {
   // -----
   //  Private
   // -----
-
-  _parseCommandString(text) {
-    const split = text.split(' ');
-    const command = split[0];
-    const paramsarr = split.splice(1);
-
-    const params = [];
-    if ( paramsarr != null && paramsarr.length > 0 ) {
-      paramsarr.forEach((param) => {
-        const matches = param.match(PARAM_NAME_REGEX);
-        if ( matches.length > 0 ) {
-          const name = matches[0];
-          const quoted = param.indexOf('"') === 0;
-          const optional = param.endsWith('?');
-
-          params.push({ name, quoted });
-        }
-      });
-    }
-
-    return { command, params };
-  }
 
   _register(command) {
     return new Promise((resolve, reject) => {
@@ -86,6 +65,42 @@ class CommandManager {
     });
   }
 
+  _createCustomCommand(data) {
+    const customCommand = CustomCommand.create(data);
+    return this._register(customCommand._toCommand())
+      .then(() => {
+        return customCommand.save();
+      });
+  }
+
+  _removeCustomCommand(name) {
+    return new Promise((resolve, reject) => {
+      CustomCommand.deleteOne({ command: name })
+        .then((numDeleted) => {
+          if ( numDeleted > 0 ) {
+            this._commands = this._commands.filter((c) => c.command !== name);
+
+            for ( let key in this._commandsByType ) {
+              delete this._commandsByType[key][name];
+            }
+
+            return resolve(true);
+          } 
+
+          reject(false);
+        });
+    });
+  }
+
+  _loadCustom() {
+    return CustomCommand.find({})
+      .then((commands) => {
+        return Promise.all(commands.map((cmd) => {
+          return this._register(cmd._toCommand());
+        }));
+      });
+  }
+
   // -----
   //  Public
   // -----
@@ -112,11 +127,6 @@ class CommandManager {
             const cmdClass = require(file);
             if ( (cmdClass.prototype instanceof Command) === true ) {
               const cmd = new cmdClass();
-
-              const parsed = this._parseCommandString(cmd.usage);
-              cmd._command = parsed.command;
-              cmd._params = parsed.params;
-
               promises.push(this._register(cmd));
             }
           } 
@@ -125,6 +135,8 @@ class CommandManager {
             return;
           }
         });
+
+        promises.push(this._loadCustom());
 
         Promise.all(promises)
           .then(resolve)

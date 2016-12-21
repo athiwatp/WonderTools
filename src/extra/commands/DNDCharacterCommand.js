@@ -13,6 +13,10 @@ class DNDCharacterCommand extends Command {
   //  Properties
   // -----
 
+  get command() {
+    return '!wtfdnd';
+  }
+  
   get usage() {
     return '!wtfdnd [target]?';
   }

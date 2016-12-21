@@ -12,6 +12,11 @@ class RemovePointsCommand extends Command {
   //  Properties
   // -----
 
+  get command() {
+    const pointsName = (this.config.system.name || 'points').toLowerCase();
+    return `!remove${ pointsName }`;
+  }
+
   get usage() {
     const pointsName = (this.config.system.name || 'points').toLowerCase();
     return `!remove${ pointsName } [target] [amount]`;

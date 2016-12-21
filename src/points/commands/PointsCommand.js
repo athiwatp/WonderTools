@@ -11,7 +11,7 @@ class PointsCommand extends Command {
   //  Properties
   // -----
 
-  get usage() {
+  get command() {
     const pointsName = (this.config.system.name || 'points').toLowerCase();
     return `!${ pointsName }`;
   }

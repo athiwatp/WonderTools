@@ -25,17 +25,17 @@ class ViewerManager {
     
     return Viewer.findOne({ username, channel })
       .then((v) => {
+        let foundViewer = v;
         if ( v != null ) {
-          for ( var key in viewer ) {
-            v[key] = viewer[key];
+          for ( var key in foundViewer ) {
+            v[key] = foundViewer[key];
           }
-
-          return v.save();
         }
         else {
-          const newViewer = Viewer.create(viewer);
-          return newViewer.save();
+          foundViewer = Viewer.create(viewer);
         }
+
+        return foundViewer.save();
       });
   }
 
@@ -44,7 +44,15 @@ class ViewerManager {
 
     return api.getUserFollowsChannel(viewer.username, channel)
       .then((follows) => {
-        viewer.isFollower = follows;
+        if ( follows === false ) {
+          viewer.isFollower = follows;
+          viewer.followDate = null;
+        }
+        else {
+          viewer.isFollower = true;
+          viewer.followDate = follows;
+        }
+
         return viewer.save();
       });
   }

@@ -12,6 +12,11 @@ class CheckPointsCommand extends Command {
   //  Properties
   // -----
 
+  get command() {
+    const pointsName = (this.config.system.name || 'points').toLowerCase();
+    return `!check${ pointsName }`;
+  }
+
   get usage() {
     const pointsName = (this.config.system.name || 'points').toLowerCase();
     return `!check${ pointsName } [target]`;

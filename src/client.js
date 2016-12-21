@@ -103,7 +103,7 @@ const _handleRequest = function _handleRequest(request) {
     }
   }
 
-  if ( parsed != null ) {
+  if ( parsed != null && parsed.command.metadata.enabled !== false ) {
     const cooldown = parsed.command.onCooldown(username);
     if ( cooldown !== false && moment.isDuration(cooldown) ) {
       const secs = Math.round(cooldown.asSeconds());

@@ -11,7 +11,7 @@ class ActiveCommand extends Command {
   //  Properties
   // -----
 
-  get usage() {
+  get command() {
     return '!active?';
   }
 

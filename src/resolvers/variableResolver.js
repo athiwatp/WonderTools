@@ -6,7 +6,7 @@ const variableManager = require('../core/variable/variableManager');
 //  Fields
 // -----
 
-const VARIABLE_REGEX = /(\$\w+)((?=[^(]|\s|$)|(\(([^)]*)\)(?=\s|$)))/gi;
+const VARIABLE_REGEX = /(\$\w+)((?=[^(]|\s|$)|(\(([^)]*)\)(?=\s|$|\W)))/gi;
 const VARIABLE_NAME_REGEX = /(\$\w+)/i;
 
 // -----

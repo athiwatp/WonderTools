@@ -12,6 +12,11 @@ class GivePointsCommand extends Command {
   //  Properties
   // -----
 
+  get command() {
+    const pointsName = (this.config.system.name || 'points').toLowerCase();
+    return `!give${ pointsName }`;
+  }
+
   get usage() {
     const pointsName = (this.config.system.name || 'points').toLowerCase();
     return `!give${ pointsName } [target] [amount]`;
