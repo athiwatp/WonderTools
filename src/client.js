@@ -79,32 +79,24 @@ const _handleRequest = function _handleRequest(request) {
   const username = request.username;
   const viewer = request.viewer;
 
-  const modConfig = config.systems['$ModSystem'];
-  const linkConfig = modConfig.links;
-
   const parsed = commandResolver.resolve(message, messageType);
   const reply = _getReply(request);
 
-  if ( parsed == null && linkConfig.block === true ) {
-    const parts = message.split(' ');
-    let foundLink = false;
-    parts.forEach((msg) => {
-      if ( isUrl(msg) === true ) {
-        foundLink = true;
-        return;
-      }
-    });
+  if ( parsed == null ) {    
+    const modSystem = systemManager.getOne('$ModSystem');
 
-    if ( foundLink === true ) {
-      reply(`/timeout $user ${ linkConfig.timeout }`);
-      reply(`Hey $user, we don't allow that kind 'round here! (Link timeout: ${ linkConfig.timeout }s)`);
+    if ( modSystem.hasLinks(message, viewer) === true ) {
+      const linksConfig = modSystem.config.links;
+
+      reply(`/timeout $user ${ linksConfig.timeoutLength }`);
+      reply(`Hey $user, we don't allow that kind 'round here! (Link timeout: ${ linksConfig.timeoutLength }s)`);
 
       return;
     }
   }
 
   if ( parsed != null && parsed.command.metadata.enabled !== false ) {
-    const cooldown = parsed.command.onCooldown(username);
+    const cooldown = parsed.command.onCooldown(viewer);
     if ( cooldown !== false && moment.isDuration(cooldown) ) {
       const secs = Math.round(cooldown.asSeconds());
       reply(`Hey $user, you have another ${ secs }s to wait before you can execute that again!`);
@@ -164,7 +156,7 @@ const _setupListeners = function _setupListeners() {
         isModerator: userState.mod,
         isSubscriber: userState.subscriber
       };
-      viewerManager._trackActive(userData.username, channel.replace('#', ''), true, userData)
+      viewerManager._trackActive(userData.username, channel.replace('#', ''), true, userData, true)
         .then((viewer) => {
           return pointsManager.getOne(userData.username, channel)
             .then((points) => {
@@ -182,13 +174,15 @@ const _setupListeners = function _setupListeners() {
     interval = setInterval(function() {
       systemManager.notify('tick', {
         time: moment().valueOf(),
-        channel: clientConfig.channel
+        channel: clientConfig.channel,
+        reply: _getReply(new Request(clientConfig.channel, "", "chat", {}))
       });
     }, 60000);
     
     systemManager.notify('tick', {
       time: moment().valueOf(),
-      channel: clientConfig.channel
+      channel: clientConfig.channel,
+      reply: _getReply(new Request(clientConfig.channel, "", "chat", {}))
     });
 
     resolve();

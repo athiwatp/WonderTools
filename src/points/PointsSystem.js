@@ -1,7 +1,5 @@
 "use strict";
 
-const moment = require('moment');
-
 const System = require('../core/system/System');
 const viewerManager = require('../core/viewer/viewerManager');
 const pointsManager = require('./pointsManager');
@@ -14,7 +12,7 @@ class PointSystem extends System {
   constructor() {
     super();
 
-    this._lastUpdateTime = null;
+    this._updateCount = null;
   }
 
   // -----
@@ -31,18 +29,14 @@ class PointSystem extends System {
 
   onNotify(event, args) {
     if ( event === 'tick' ) {
-      if ( this._lastUpdateTime == null ) {
-        this._lastUpdateTime = args.time;
+      if ( this._updateCount == null ) {
+        this._updateCount = 0;
       }
       else {
-        const start = moment(this._lastUpdateTime);
-        const end = moment(args.time);
+        this._updateCount++;
 
-        const duration = moment.duration(end.diff(start));
-        const minutes = Math.round(duration.asMinutes());
-        const targetMinutes = this.config.updateInterval / 60000;
-
-        if ( minutes >= targetMinutes ) {
+        const targetMinutes = this.config.updateInterval;
+        if ( this._updateCount >= targetMinutes ) {
           viewerManager.get(args.channel)
             .then((viewers) => {
               return Promise.all(viewers.map((v) => pointsManager.getOne(v.username, args.channel)));
@@ -53,7 +47,7 @@ class PointSystem extends System {
                 return p.save();
               }));
             })
-            .then(() => Promise.resolve(this._lastUpdateTime = moment().valueOf()))
+            .then(() => Promise.resolve(this._updateCount = 0))
             .catch((error) => {
               console.error(error);
             });

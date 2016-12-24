@@ -1,7 +1,5 @@
 "use strict";
 
-var Horseman = require('node-horseman');
-
 const Command = require('../../core/command/Command');
 
 // -----

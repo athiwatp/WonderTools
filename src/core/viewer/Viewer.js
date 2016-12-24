@@ -39,7 +39,7 @@ class Viewer extends Document {
 
     this.lastSeen = {
       type: Date,
-      default: Date.now
+      default: null
     };
 
     this.followDate = {

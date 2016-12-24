@@ -27,6 +27,10 @@ class System {
   }
 
   get isEnabled() {
+    if ( this.config.enabled != null ) {
+      return this.config.enabled;
+    }
+
     return true;
   }
 };

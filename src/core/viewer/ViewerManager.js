@@ -1,5 +1,7 @@
 "use strict";
 
+const moment = require('moment');
+
 const Viewer = require('./Viewer');
 const api = require('../../api');
 
@@ -20,15 +22,15 @@ class ViewerManager {
   // -----
 
   _findAndUpdateViewer(viewer) {
-    const username = viewer.username;
-    const channel = viewer.channel.replace('#', '');
+    const username = viewer.username.toLowerCase();
+    const channel = viewer.channel.replace('#', '').toLowerCase();
     
     return Viewer.findOne({ username, channel })
       .then((v) => {
         let foundViewer = v;
-        if ( v != null ) {
-          for ( var key in foundViewer ) {
-            v[key] = foundViewer[key];
+        if ( foundViewer != null ) {
+          for ( var key in viewer ) {
+            foundViewer[key] = viewer[key];
           }
         }
         else {
@@ -69,12 +71,12 @@ class ViewerManager {
       });
   }
 
-  _trackActive(username, channel, active, data) {
+  _trackActive(username, channel, active, data, setLastSeen) {
     data = data || {};
     channel = channel.replace('#', '');
 
     const viewer = Object.assign(data, { username, channel });
-    if ( active ) viewer.lastSeen = Date.now();
+    if ( setLastSeen === true ) viewer.lastSeen = new Date();
 
     return this._findAndUpdateViewer(viewer)
       .then((viewer) => {
@@ -108,6 +110,28 @@ class ViewerManager {
     return new Promise((resolve, reject) => {
       resolve(viewers.find((v) => v.username.toLowerCase() === username.toLowerCase()));
     });
+  }
+
+  getActive(channel) {
+    return this.get(channel)
+      .then((viewers) => {
+        try {
+          const now = moment();
+          const active = viewers.filter((v) => {
+            if ( v.lastSeen == null ) return false;
+
+            const lastSeen = moment(v.lastSeen);
+            const duration = moment.duration(now.diff(lastSeen));
+
+            return duration.asMinutes() <= 5;
+          });
+
+          return Promise.resolve(active);
+        } catch ( e ) {
+          console.error('viewerManager', e);
+          return Promise.reject(e);
+        }
+      });
   }
 };
 

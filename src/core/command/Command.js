@@ -158,8 +158,14 @@ class Command {
     return viewer.accessLevel <= this.accessLevel;
   }
 
-  onCooldown(username) {
+  onCooldown(viewer) {
+    const username = viewer.username.toLowerCase();
+
     if ( this.cooldown <= 0 && this.userCooldown <= 0 ) {
+      return false;
+    }
+
+    if ( this.config.bypassCooldownLevel != null && viewer.accessLevel <= this.config.bypassCooldownLevel ) {
       return false;
     }
 
