@@ -24,6 +24,4 @@
 | $pointsName | The name of the points. |
 | $points | The number of points the user who called the command has. |
 | $rand(min, max) | A random number between min and max. |
-| $queue(action, name, viewer) | **action=add** Add the viewer to the queue. Name and viewer are optional, and default to command name and user who called command. 
-**action=pop** Pull the top viewer from the queue and return their name. Queue name is optional. 
-**action=remove** Remove viewer from the queue. Name and viewer are optional, and default to command name and user who called the command. |
+| $queue(action, name, viewer) | **action=add** Add the viewer to the queue. Name and viewer are optional, and default to command name and user who called command.\n**action=pop** Pull the top viewer from the queue and return their name. Queue name is optional.\n**action=remove** Remove viewer from the queue. Name and viewer are optional, and default to command name and user who called the command. |
