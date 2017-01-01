@@ -86,10 +86,10 @@ const _handleRequest = function _handleRequest(request) {
     const modSystem = systemManager.getOne('$ModSystem');
 
     if ( modSystem.hasLinks(message, viewer) === true ) {
-      const linksConfig = modSystem.config.links;
+      const linksConfig = modSystem.config;
 
-      reply(`/timeout $user ${ linksConfig.timeoutLength }`);
-      reply(`Hey $user, we don't allow that kind 'round here! (Link timeout: ${ linksConfig.timeoutLength }s)`);
+      reply(`/timeout $user ${ linksConfig.linkTimeoutLength }`);
+      reply(`Hey $user, we don't allow that kind 'round here! (Link timeout: ${ linksConfig.linkTimeoutLength }s)`);
 
       return;
     }

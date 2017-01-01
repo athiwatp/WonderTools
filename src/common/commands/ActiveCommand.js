@@ -31,7 +31,7 @@ class ActiveCommand extends Command {
   //  Public
   // -----
   action(request, reply) {
-    reply(`WonderToys (the Bot) powers are activated!`);
+    reply(`WonderTools powers are activated!`);
   }
 };
 

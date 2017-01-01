@@ -35,7 +35,8 @@ const getChannelViewers = function getChannelViewers(channel) {
 
       const chatters = body.chatters || {};
       if ( body.chatters == null ) {
-        console.log(err, body, chatters);
+        console.log('[ WT ] Failed to load chatters, trying agian ....');
+        return getChannelViewers(channel);
       }
 
       const viewers = [];

@@ -32,7 +32,7 @@ const _resolveOne = function _resolveOne(name, args, request) {
       
       Promise.all(promises)
         .then((result) => {
-          return Promise.resolve(vari.resolve(result, request))
+          return Promise.resolve(vari.resolve(result, request, name))
         })
         .then((result) => {
           resolve(result);

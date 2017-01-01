@@ -22,7 +22,7 @@ class UserVariable extends Variable {
   resolve(args, request) {
     const viewer = request.viewer;
     if ( viewer.followDate == null ) {
-      return 'N/A';
+      return '';
     }
 
     return viewer.followDate;

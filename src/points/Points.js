@@ -24,12 +24,18 @@ class Points extends Document {
   // -----
 
   add(amount) {
+    if ( typeof(amount) === String ) amount = parseInt(amount);
+    if ( isNaN(amount) ) return Promise.resolve(this);
+
     this.amount += amount;
 
     return this.save();
   }
 
   remove(amount) {
+    if ( typeof(amount) === String ) amount = parseInt(amount);
+    if ( isNaN(amount) ) return Promise.resolve(this);
+    
     this.amount -= amount;
     if ( this.amount < 0 ) this.amount = 0;
 

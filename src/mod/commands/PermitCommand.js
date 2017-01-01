@@ -38,8 +38,8 @@ class PermitCommand extends Command {
     const modSystem = systemManager.getOne('$ModSystem');
     modSystem.permitViewerLinks(request.params[0]);
 
-    const linksConfig = modSystem.config.links;
-    reply(`$target has been permitted to post links for ${ linksConfig.permitLength } minute(s)!`);
+    const linksConfig = modSystem.config;
+    reply(`$target has been permitted to post links for ${ linksConfig.linkPermitLength } minute(s)!`);
   }
 };
 

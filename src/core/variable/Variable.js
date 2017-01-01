@@ -12,7 +12,7 @@ class Variable {
   // -----
 
   resolve(args, request) {
-    return "";
+    return '';
   }
 };
 

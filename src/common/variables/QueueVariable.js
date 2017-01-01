@@ -37,6 +37,8 @@ class QueueVariable extends Variable {
       queueName = args[1].toLowerCase();
     }
 
+    queueName = queueName.toLowerCase();
+
     if ( args.length >= 3 ) {
       queuer = args[2].toLowerCase();
     }
@@ -52,6 +54,10 @@ class QueueVariable extends Variable {
       }
 
       case 'pop': {
+        if ( this._queues[queueName].length === 0 ) {
+          return '';
+        }
+        
         return this._queues[queueName].shift();
       }
 
@@ -60,6 +66,8 @@ class QueueVariable extends Variable {
         return this._queues[queueName].length;
       }
     }
+
+    return null;
   }
 }
 

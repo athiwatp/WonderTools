@@ -17,7 +17,7 @@ class AddCmdCommand extends Command {
   }
 
   get usage() {
-    return '!addcmd [name] ["response"] [--flags]'
+    return '!addcmd [name] "[response]" [--flags]'
   }
 
   get name() {

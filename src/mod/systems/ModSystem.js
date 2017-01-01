@@ -33,7 +33,7 @@ class ModSystem extends System {
     const now = moment();
     const duration = moment.duration(now.diff(info.expires));
 
-    return duration.asMinutes() <= this.config.links.permitLength;
+    return duration.asMinutes() <= this.config.linkPermitLength;
   }
 
   _isViewerLinkPermitted(username) {
@@ -71,10 +71,10 @@ class ModSystem extends System {
   }
 
   hasLinks(text, viewer) {
-    const linksConfig = this.config.links;
+    const linksConfig = this.config;
 
-    if ( linksConfig.block !== true ) return false;
-    if ( linksConfig.bypassBlockLevel != null && viewer.accessLevel <= linksConfig.bypassBlockLevel ) return false;
+    if ( linksConfig.blockLinks !== true ) return false;
+    if ( linksConfig.linkBypassLevel != null && viewer.accessLevel <= linksConfig.linkBypassLevel ) return false;
     if ( this._isViewerLinkPermitted(viewer.username) === true ) return false;
 
     const parts = text.split(' ');
