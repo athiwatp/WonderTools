@@ -1,0 +1,62 @@
+@primary-color: #795548;
+@primary-color-light: #D7CCC8;
+@primary-color-dark: #5D4037;
+@secondary-color: rgb(124,77,255);
+
+md-sidenav > md-content {
+  background-color: @primary-color;
+
+  .md-subheader {
+    background-color: inherit;
+    color: white;
+    opacity: 0.60;
+    font-size: 0.8rem;
+  }
+
+  .md-button {
+    color: white;
+
+    .md-list-item-inner {
+      font-weight: 500;
+      text-transform: uppercase;
+
+      .material-icons {
+        color: white;
+        opacity: 0.5;
+
+        &.mdi {
+          height: auto;
+          margin-top: auto;
+          margin-bottom: auto;
+          line-height: 20px;
+
+          &.online {
+            opacity: 1;
+            color: #D1C4E9;
+          }
+        }
+      }
+    }
+
+    .md-secondary-container {
+      md-icon {
+        color: white;
+        visibility: none;
+      }
+    }
+  }
+
+  md-list-item.active {
+    .md-button {
+      background-color: rgba(158,158,158,0.2);
+    }
+
+    .md-secondary-container {
+      md-icon {
+        visibility: visible;
+      }
+    }
+  }
+}
+
+@import 'dashboard/dashboard.less';

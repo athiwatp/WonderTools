@@ -1,0 +1,30 @@
+doctype html
+html
+  head
+    title WonderTools
+    
+    link(rel="stylesheet", href="../bower_components/mdi/css/materialdesignicons.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/icon?family=Material+Icons")
+    link(rel="stylesheet", href="../bower_components/angular-material/angular-material.min.css")
+
+    script(src="../bower_components/angular/angular.min.js")
+    script(src="../bower_components/angular-ui-router/release/angular-ui-router.min.js")
+    script(src="../bower_components/angular-animate/angular-animate.min.js")
+    script(src="../bower_components/angular-aria/angular-aria.min.js")
+    script(src="../bower_components/angular-messages/angular-messages.min.js")
+    script(src="../bower_components/angular-material/angular-material.min.js")
+
+    link(rel="stylesheet", href="../ui.css")
+
+  body(data-ng-app="wonderTools", data-ng-cloak="", layout="row")
+    //- SideNav
+    div(data-ng-include="'sideNav/sideNav.html'", layout="column", flex="25")
+    //- SideNav
+    
+    //- Content
+    div(layout="column", flex="75")
+      md-content(data-ui-view, layout="column", flex="")
+    //- Content
+
+    //- App Script
+    script(src="../ui.js")

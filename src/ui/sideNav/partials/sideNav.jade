@@ -1,0 +1,16 @@
+div(layout="column", flex="", data-ng-controller="SideNavController as $nav")
+  md-sidenav(data-md-is-locked-open="true", flex="100").md-whiteframe-4dp
+    md-content(md-scroll-y, flex="", layout="column")
+      md-list(flex="")
+        md-subheader 
+          | WonderTools is 
+          span(data-ng-if="$nav.isConnected == true") ONLINE
+          span(data-ng-if="$nav.isConnected != true") OFFLINE
+        md-list-item(ng-click="$nav.connectBot()", ng-disabled="$nav.botClient.canConnect != true") 
+          md-icon(md-font-icon="mdi-twitch", data-ng-class="{ online: $nav.isConnected == true }").mdi
+          p(data-ng-if="$nav.isConnected != true") Connect
+          p(data-ng-if="$nav.isConnected == true") Disconnect
+        md-divider
+          md-list-item(data-ui-sref="dashboard", data-ui-sref-active="active")
+            p Dashboard
+            md-icon.md-secondary.material-icons chevron_right

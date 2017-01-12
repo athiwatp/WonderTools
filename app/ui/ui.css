@@ -1,0 +1,49 @@
+md-sidenav > md-content {
+  background-color: #795548;
+}
+md-sidenav > md-content .md-subheader {
+  background-color: inherit;
+  color: white;
+  opacity: 0.60;
+  font-size: 0.8rem;
+}
+md-sidenav > md-content .md-button {
+  color: white;
+}
+md-sidenav > md-content .md-button .md-list-item-inner {
+  font-weight: 500;
+  text-transform: uppercase;
+}
+md-sidenav > md-content .md-button .md-list-item-inner .material-icons {
+  color: white;
+  opacity: 0.5;
+}
+md-sidenav > md-content .md-button .md-list-item-inner .material-icons.mdi {
+  height: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+  line-height: 20px;
+}
+md-sidenav > md-content .md-button .md-list-item-inner .material-icons.mdi.online {
+  opacity: 1;
+  color: #D1C4E9;
+}
+md-sidenav > md-content .md-button .md-secondary-container md-icon {
+  color: white;
+  visibility: none;
+}
+md-sidenav > md-content md-list-item.active .md-button {
+  background-color: rgba(158, 158, 158, 0.2);
+}
+md-sidenav > md-content md-list-item.active .md-secondary-container md-icon {
+  visibility: visible;
+}
+#dashboardContainer md-card md-card-title {
+  padding: 16px 16px 24px;
+}
+#dashboardContainer md-card md-card-content {
+  padding-bottom: 0px;
+}
+#dashboardContainer md-card md-card-content md-input-container {
+  margin: 12px;
+}

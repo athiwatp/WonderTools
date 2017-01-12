@@ -1,0 +1,46 @@
+div#dashboardContainer(layout-padding="", flex="", layout="column")
+  //- Credentials Card
+  md-card(flex="35")
+    md-card-title: md-card-title-text: span.md-headline Bot Credentials
+    md-card-content
+      form(name="$ctrl.credentialsForm", layout="row")
+        md-input-container(layout-fill="")
+          label Username
+          input(type="text", name="username", data-ng-model="$ctrl.credentials.username", required="", md-no-asterisk="")
+          div(data-ng-messages="$ctrl.credentialsForm.username.$error")
+            div(data-ng-message-exp="['required']") Username is required!
+
+        md-input-container(layout-fill="")
+          label OAuth Password
+          input(type="password", name="password", data-ng-model="$ctrl.credentials.password", required="", md-no-asterisk="")
+          div(data-ng-messages="$ctrl.credentialsForm.password.$error")
+            div(data-ng-message-exp="['required']") Password is required!
+
+        md-input-container(layout-fill="")
+          label Channel
+          input(type="text", name="channel", data-ng-model="$ctrl.credentials.channel", 
+                data-ng-blur="$ctrl.fixChannel()", required="", md-no-asterisk="")
+          div(data-ng-messages="$ctrl.credentialsForm.channel.$error")
+            div(data-ng-message-exp="['required']") Channel is required!
+
+    md-card-actions(layout="row", layout-align="end center")
+      span.md-caption
+        | You need your OAuth password, rather than your "regular" password. You can get this by clicking the button here >>
+      md-button.md-icon-button.md-accent(data-ng-click="$ctrl.openOAuthLink()")
+        md-tooltip(md-direction="top") Get your OAuth password
+        md-icon.material-icons open_in_new
+      md-button.md-icon-button.md-accent(data-ng-click="$ctrl.setCredentials()", data-ng-disabled="$ctrl.canSetCredentials != true")
+        md-tooltip(md-direction="top") Set your credentials
+        md-icon.material-icons check
+  //- Credentials Card
+
+  //- Bot Log
+  md-card(flex="65")
+    md-card-title: md-card-title-text: span.md-headline Log
+    md-card-content(layout="column", flex="100")
+      md-virtual-repeat-container#botLogContainer(flex="100")
+        div(md-virtual-repeat="item in $ctrl.botLog", flex="", style="padding-bottom: 6px;")
+          span(style="opacity: 0.5") [{{ item.time }}]&nbsp;
+          span(style="font-weight: bold; opacity: 0.80;", data-ng-style="{ color: item.color }") {{ item.username}}:&nbsp;
+          span {{ item.text }}
+  //- Bot Log
